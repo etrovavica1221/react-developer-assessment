@@ -1,36 +1,52 @@
-import { useState } from 'react';
 import dayjs from 'dayjs';
 import relativeTime from "dayjs/plugin/relativeTime";
-
-import useFetchPosts from "./hooks/useFetchPosts";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+
+import useFetchPosts from "./hooks/useFetchPosts";
 import Pagination from '../Pagination/Pagination';
+import useSelectCategory from './hooks/useSelectCategory';
+import usePagination from '../Pagination/hook/usePagination';
+
 
 
 const HomePage = () => {
   // Using the relativeTime plugin to format dates with 'fromNow' method
   dayjs.extend(relativeTime);
+
   // Custom hook to fetch posts
   const {posts, loading, error} = useFetchPosts();
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [postsPerPage, setPostsPerPage] = useState(7);
+  // Custom hook to filter posts by category
+  const { selectedCategory, handleCategoryChange, categories, filteredPosts } = useSelectCategory(posts);
 
-  // Calculates indexes of posts which should be displayed on a page
-  const postsToDisplay = posts.slice((currentPage - 1) * postsPerPage, currentPage * postsPerPage);
+  // Custom pagination hook
+  const { postsToDisplay, postsPerPage, currentPage, setCurrentPage } = usePagination(filteredPosts);
     
   return (
     <div className="home-page">
       {/* Loading icon */}
-      {loading && <FontAwesomeIcon icon={faSpinner} />}
+      {loading && <FontAwesomeIcon icon={faSpinner} spin />}
       {/* Error handling */}
       {error && <p>Error: {error}</p>}
+
+      {/* Category filter dropdown */}
+      {!loading && 
+        <div className="category-filter-container">
+          <label htmlFor="category-filter">Filter by category:</label>
+          <select onChange={handleCategoryChange} value={selectedCategory} name="category-filter" className="category-filter">
+            {categories && categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </div>
+      }
       
       <div className="posts-container">
-        {posts.length > 0 
-          && postsToDisplay.map((post) => {
+        {filteredPosts?.length > 0 
+          && postsToDisplay?.map((post) => {
             return (
               <div key={post.id} className="post">
                 <div className="post-header">
@@ -63,12 +79,13 @@ const HomePage = () => {
       </div>
 
       {/* Pagination component */}
-      <Pagination
-        postsPerPage={postsPerPage}
-        totalPosts={posts.length}
-        setCurrentPage={setCurrentPage}
-        currentPage={currentPage}
-      /> 
+      {(filteredPosts.length > postsPerPage) && (
+        <Pagination
+          postsPerPage={postsPerPage}
+          totalPosts={filteredPosts.length}
+          setCurrentPage={setCurrentPage}
+          currentPage={currentPage}
+        /> )}
     </div>
   );
 }

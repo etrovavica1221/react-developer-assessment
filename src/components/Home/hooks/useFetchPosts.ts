@@ -13,6 +13,7 @@ const useFetchPosts = () => {
             .then((res) => res.json())
             .then((data) => {
                 setPosts(data.posts);
+                setLoading(false);
             })
             .catch((err) => {
                 setError(err.message || "An error occurred.");
