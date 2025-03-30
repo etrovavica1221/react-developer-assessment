@@ -1,8 +1,9 @@
+import HomePage from "./Home/HomePage";
+
 const App: React.FC = () => {
   return (
-    <div>
-      {/* Complete the exercise here. */}
-      Hello World
+    <div className="app">
+      <HomePage />
     </div>
   );
 };
